@@ -5,6 +5,7 @@ Raspberry Pi 4 - Heat Sink Test - V0.9.3
 - generate a CSV file with CPU Temp, Freq, Time, 
 - generate a RRD Database 
 - generate a graph as PNG with rrdtools
+- duration 15 minutes
 
 Dependencies
 - vcgencmd
@@ -12,10 +13,6 @@ Dependencies
 - sysbench
 sudo apt update && sudo apt upgrade
 sudo apt install rrdtool sysbench
-
-How to run
-./LongHeatSinkTest.sh
-Duration: 15 minutes
 
 
 Add Features 
