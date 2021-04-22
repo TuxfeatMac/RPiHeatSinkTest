@@ -1,23 +1,9 @@
 #!/bin/bash
-#
 # V0.9.3
-#
-# To Do List #
-# [ ]
-#
-# Features #
-# [ ] more comments ?
-# [ ] -d as $1 as debugfunktion ?
-# [ ] add HeatsinkName to Graph ?
-# [ ] add Throthelcount to rrd / csv?
-# [ ] interactive timesettings for phases ?
-# [ ] dynamic compenstae for cmd execution time to improve accuracy ?
-# [ ] V2.0 with data every 15s ?
-#
 
 #DEFINE FUNKTIONS ======================================================================
 infotxt() {
- printf "RPi HeatSinkTest by Joachim Träuble V 0.9.3\n"
+ printf "RPi HeatSinkTest by TuxfeatMac / Tux_1024 - V 0.9.3\n"
 }
 
 # GET DATA  ============================================================================
