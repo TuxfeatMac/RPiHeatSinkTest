@@ -7,6 +7,9 @@ Raspberry Pi 4 - Heat Sink Test - V0.9.3
 - generate a graph as PNG with rrdtools
 - duration 15 minutes
 
+Run
+- ./LongTestHeatsink.sh
+
 Dependencies
 - vcgencmd
 - rrdtool
@@ -14,6 +17,9 @@ Dependencies
 sudo apt update && sudo apt upgrade
 sudo apt install rrdtool sysbench
 
+Install
+- git clone https://github.com/TuxfeatMac/RPiHeatSinkTest
+- chmod +x LongTestHeatsink.sh
 
 Add Features 
 [ ] more comments ?
@@ -21,7 +27,9 @@ Add Features
 [ ] add HeatsinkName to Graph ?
 [ ] add ThrotheCount to rrd / csv ?
 [ ] interactive timesettings for phases ?
+[ ] automatic timesettings back to idle temps ?
 [ ] dynamic compenstae for cmd execution time to improve accuracy ?
 [ ] V2.0 with data every 15s ?
+[ ] 
 
 
