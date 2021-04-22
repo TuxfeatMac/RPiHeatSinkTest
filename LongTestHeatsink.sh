@@ -130,7 +130,7 @@ prntrrd() {
 graphrrd() {
  rrdtool graph heat.png \
  --end now \
- --start end-16m \
+ --start end-15m \
  --full-size-mode \
  --slope-mode \
  --width 1000 \
