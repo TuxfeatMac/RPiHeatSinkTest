@@ -137,7 +137,7 @@ graphrrd() {
  --height 600 \
  --upper-limit 85 \
  --lower-limit 0 \
- --title "Long Heatsink Test - 1min IDLE | 10min STRESS | 4minCOOLDOWN" \
+ --title "Long Heatsink Test - 1min IDLE | 10min STRESS | 4min COOLDOWN" \
  DEF:temp=heat.rrd:temp:MAX \
  DEF:clk=heat.rrd:clk:MAX \
  DEF:thro=heat.rrd:thro:MAX \
