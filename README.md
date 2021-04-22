@@ -10,7 +10,7 @@ Raspberry Pi 4 - Heat Sink Test - V0.9.3
 Dependencies
 - vcgencmd
 - rrdtool
-- sysbench
+- sysbench 
 sudo apt update && sudo apt upgrade
 sudo apt install rrdtool sysbench
 
