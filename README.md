@@ -11,11 +11,8 @@ Run
 - ./LongTestHeatsink.sh
 
 Dependencies
-- vcgencmd
-- rrdtool
-- sysbench 
-sudo apt update && sudo apt upgrade
-sudo apt install rrdtool sysbench
+- vcgencmd, rrdtool, sysbench 
+sudo apt update && sudo apt upgrade && sudo apt install rrdtool sysbench
 
 Install
 - git clone https://github.com/TuxfeatMac/RPiHeatSinkTest
