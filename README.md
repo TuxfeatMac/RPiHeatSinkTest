@@ -1,6 +1,6 @@
 Raspberry Pi 4 - Heat Sink Test - V0.9.3
 
-- measures the RPi SoC temperature every minute
+- measures the RPi SoC temperature every second
 - checks for CPU throttling
 - generate a CSV file with CPU Temp, Freq, Time, 
 - generate a RRD Database 
