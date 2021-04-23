@@ -73,12 +73,12 @@ intcsv() {
      printf "\nRENAME OLD CSV\n"
      exit
    fi
-     printf "CREATE NEW CSV\n"
-     TIMESTAMP=$(date)
-     rm HTL.csv >/dev/null 2>&1
-     printf "$TIMESTAMP" | paste >> HTL.csv
-     printf "sec,tmp,clk,thr\n" | paste >> HTL.csv
  fi
+ printf "CREATE NEW CSV\n"
+ TIMESTAMP=$(date)
+ rm HTL.csv >/dev/null 2>&1
+ printf "$TIMESTAMP" | paste >> HTL.csv
+ printf "sec,tmp,clk,thr\n" | paste >> HTL.csv
 }
 
 endcsv() {
