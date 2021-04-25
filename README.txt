@@ -1,14 +1,13 @@
-Raspberry Pi 4 - Heat Sink Test - V0.9.5
+Raspberry Pi 4 - Heat Sink Test - V0.9.6
 
-- measures the RPi SoC temperature every second
-- checks for CPU throttling
-- generate a CSV file with CPU Temp, Freq, Time, 
-- generate a RRD Database
-- generate a graph as PNG with rrdtools
-- duration variable, dynamic, adjustable
+Measures the RPi SoC temperature and checks for CPU throttling every second.
 
-Run
-- ./LongTestHeatsink.sh
+Features
+[X] set coustum idle|stress|cool timings
+[X] generate a CSV file containing: Step, Time, Temp, Freq
+[X] generate a RRD DataBase containing: Temp, Freq,
+[X] output a PNG Grpah with rrdtools
+[ ]
 
 Dependencies
 - vcgencmd, rrdtool, sysbench
@@ -16,17 +15,17 @@ Dependencies
 
 Install
 - git clone https://github.com/TuxfeatMac/RPiHeatSinkTest
-- chmod +x LongTestHeatsink.sh
+- chmod +x HeatSinkTest.sh
+
+Run
+- ./HeatSinkTest.sh
+- hit x4 times ENTER for default name/settings 60|600|60
 
 Add Features 
 [ ] more comments ?
 [ ] false input protection ?
-[ ] -d as $1 as debugfunktion ?
-[X] add HeatsinkName to Graph ?
 [ ] add ThrotheCount to rrd / csv ?
-[X] interactive timesettings for phases ?
-[X] automatic timesettings back to idle temps ?
-[ ] dynamic compenstae for cmd execution time to improve accuracy ?
+[ ] -d as $1 as debugfunktion ?
 [ ] V2.0 with data every 15s ?
-[ ] 
+[ ] dynamic compenstae for cmd execution time to improve accuracy ?
 [ ] 
