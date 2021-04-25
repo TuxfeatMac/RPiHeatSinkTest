@@ -1,5 +1,6 @@
 Raspberry Pi 4 - Heat Sink Test - V0.9.6
 
+Runs a Stresstest via Sysbench on all 4 cores to generate heat on the SoC.
 Measures the RPi SoC temperature and checks for CPU throttling every second.
 
 Features
@@ -25,6 +26,7 @@ Add Features
 [ ] more comments ?
 [ ] false input protection ?
 [ ] add ThrotheCount to rrd / csv ?
+[ ] add time to csv
 [ ] -d as $1 as debugfunktion ?
 [ ] V2.0 with data every 15s ?
 [ ] dynamic compenstae for cmd execution time to improve accuracy ?
