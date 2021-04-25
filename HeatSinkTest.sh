@@ -1,42 +1,57 @@
 #!/bin/bash
-#
-VERSION='0.9.4'
-#
-# To Do List #
-# [ ] Check inputs
-# [ ]
-#
-# Features #
-# [ ] more comments ?
-# [ ] -d as $1 as debugfunktion ?
-# [X] add HeatsinkName to Graph
-# [ ] add Throthelcount to rrd / csv?
-# [X] interactive timesettings for phases ?
-# [ ] dynamic compenstae for cmd execution time to improve accuracy ?
-# [ ] V2.0 with data every 15s ?
-#
+VERSION='0.9.6'
 
 #DEFINE FUNKTIONS ======================================================================
 infotxt() {
- printf "RPi HeatSinkTest by Joachim Träuble V$VERSION\n"
+ printf "RPi HeatSinkTest by Joachim Träuble V$VERSION\n\n"
 }
 # GET USER INPUT  ======================================================================
 sethsname() {
- read -p "HeatSinkName?:" HSNAME
-}
-setstresstime() {
- read -p "Stres Test Duration ? in seconds:" STRESSTIME
+ read -p "HeatSinkName ?                            : " HSNAME
+ case $HSNAME in
+  "")
+   HSNAME="DEFAULT";;
+ esac
 }
 setidletime() {
- read -p "Idle Time ? in seconds:" IDLETIME
+ read -p "Up Front Idle Time ?     in seconds  [60] : " IDLETIME
+ case $IDLETIME in
+  "")
+   IDLETIME="60";;
+ esac
+}
+setstresstime() {
+ read -p "Stress Test Time ?       in seconds [600] : " STRESSTIME
+ case $STRESSTIME in
+  "")
+   STRESSTIME="600";;
+ esac
 }
 setcooltime() {
- read -p "Dynamic Cooldown time until reaching Ideletemps again ? y/n:" CONFIRM
- if [ "$CONFIRM" == "n" ]
+ read -p "Cooldown Time ? in seconds dynamic=d [60] : " COOLTIME
+ case $COOLTIME in
+  "")
+   COOLTIME="60";;
+ esac
+}
+onkill() {
+ printf "\nEXIT...\n"
+ SYSBENCH=$(pgrep sysbench)
+ if [ "$SYSBENCH" != "" ]
   then
-   read -p "Cooldown Time ? in seconds:" COOLTIME
+   printf "Killing Sysbench...\n"
+   sudo killall sysbench
+ fi
+ if [ -f $HSNAME.png ]
+  then
+   printf "All Done Already...\n" 
+  else
+   endcsv
+   gettesttime
+   graphrrd
  fi
 }
+
 # GET DATA  ============================================================================
 getcooltime() {
  COOLTIME=$(($TESTTIME-$STRESSTIME-$IDLETIME))
@@ -52,10 +67,8 @@ gettemp() {
 }
 getidletemp() {
  OFFSET=$(($IDLETIME + 2))
-printf "$OFFSET $IDLETIME\n"
  SUM=$(head -n $OFFSET $HSNAME.csv | cut -d ',' -f 2 | tail -n $IDLETIME | awk '{ SUM += $1} END { print SUM }')
  IDLETEMP=$(($SUM / $IDLETIME))
-# printf "SUM: $SUM\n"
  printf "IDLETEMP: $IDLETEMP\n"
 }
 getclock() {
@@ -76,7 +89,7 @@ case $THROT in
 	THROT=0
 	WASTHROT="YES"
 	if [ "$THROTTIME" == "" ]; then
-	 THROTTIME=$(($TIME-60)) #must match MAIN idle time
+	 THROTTIME=$(($TIME-$IDLETIME))
 	fi
 	printf "!%s %s reboot required!\n" $WASTHROT $THROTTIME;;
  0x20002)
@@ -96,26 +109,20 @@ startstress() {
  printf "START CPU STRESS TEST\n"
  sysbench --num-threads=4 --test=cpu --cpu-max-prime=1000000000 --max-time=1200 run > /dev/null 2>&1 &
 }
-onkill() {
-# if [ ]
-  echo "Killing sysbench.."
-  sudo killall sysbench
-#  echo "graphing heat.png.."
-#  graprrd generate graph no mater what not working
-}
 
 # CSV ===================================================================================
 intcsv() {
  if [ -f "$HSNAME.csv" ]
   then
-   printf "An old CSV exits. Delete it? y/n \n"
-   read -n 1 -p ":" CONFIRM
+   read -p "An PNG / CSV / RRD exits! Delete ?  y / n : " CONFIRM
    if [ "$CONFIRM" == "y" ]
     then
+     rm $HSNAME.png >/dev/null 2>&1
+     printf "\nDELETED OLD PNG\n"
      rm $HSNAME.csv >/dev/null 2>&1
-     printf "\nDELETED OLD CSV\n"
+     printf "DELETED OLD CSV\n"
     else
-     printf "\nRENAME OLD CSV\n"
+     printf "\nRENAME OLD CSV / RRD...\n"
      exit
    fi
  fi
@@ -124,32 +131,33 @@ intcsv() {
  printf "$TIMESTAMP" | paste >> $HSNAME.csv
  printf "sec,tmp,clk,thr\n" | paste >> $HSNAME.csv
 }
-
 endcsv() {
- TIMESTAMP=$(date)
- printf "WRITE END TIMESTAMP CSV\n"
- printf "$TIMESTAMP" | paste >> $HSNAME.csv
+ if [ -f "$HSNAME.csv" ]
+  then
+   TIMESTAMP=$(date)
+   printf "WRITE END TIMESTAMP CSV\n"
+   printf "$TIMESTAMP" | paste >> $HSNAME.csv
+ fi
 }
-
 prntcsv() {
  printf "%s,%s,%s,%s\n" $TIME $TEMP $CLOCK $THROT | paste >> $HSNAME.csv
 }
 
+# CONSOLE =====================================================================
 prntcli() {
  printf "%s\t%s\t%s\t%s\n" $TIME $TEMP $CLOCK $THROT
 }
-
 prntinfo() {
  printf "TIME\tTEMP\tCLOCK\tTHROT\n"
 }
 
 # RRD ===================================================================================
 intrrd() {
-# if [ -f $HSNAME.rrd ]
-#  then
-#   delete rrd if csv also deleted
- printf "DELETE OLD RRD\n"
- rm $HSNAME.rrd >/dev/null 2>&1
+ if [ "$CONFIRM" == "y" ]
+  then
+   printf "DELETE OLD RRD\n"
+   rm $HSNAME.rrd >/dev/null 2>&1
+ fi
  printf "CREATE NEW RRD\n"
  rrdtool create $HSNAME.rrd --step 1 \
  DS:temp:GAUGE:2:0:100 \
@@ -163,13 +171,11 @@ prntrrd() {
  #Variabelen anpassen fuer RRD
  THROT=$(($THROT*10))
  CLOCK=$(($CLOCK/100))
- #Debug Output
- #date
  #printf "%s\t%s\t%s\t%s\n" $TIME $TEMP $CLOCK $THROT
- #Update RRD
  rrdtool update $HSNAME.rrd N:$TEMP:$CLOCK:$THROT
 }
 graphrrd() {
+ printf "GENERATING GRAPH\n"
  rrdtool graph $HSNAME.png \
  --end now-1s\
  --start end-${TESTTIME}s+1s \
@@ -190,7 +196,7 @@ graphrrd() {
  GPRINT:clk:MIN:"Min=%.0lf00MHz" \
  GPRINT:clk:MAX:"Max=%.0lf00MHz   " \
  AREA:thro#e11110:"Throttled = $WASTHROT @ ${THROTTIME}s x${THROTCOUNT}"
-# VRULE:now-${THROTTIME}s#e11110
+# VRULE:end-${IDELTIME}s#e11110
 }
 
 # COMBINE  ==============================================================================
@@ -200,7 +206,6 @@ getdata() {
  getthrot
  chkthrot
 }
-
 prntdata() {
  prntcli
  prntcsv
@@ -221,7 +226,7 @@ intcsv
 intrrd
 
 # WARMUP PHASE ==========================================================================
-printf "IDLE DATA FOR: ${IDLETIME}s\n"
+printf "\nIDLE DATA FOR: ${IDLETIME}s\n"
 prntinfo
 for ((TIME=0; TIME<$IDLETIME; TIME=TIME+1)); do
  getdata
@@ -243,8 +248,8 @@ stopstress
 
 # COOLDOWN PHASE ========================================================================
 prntinfo
-if [ "$COOLTIME" == "" ]
- then
+if [ "$COOLTIME" == "d" ]
+ then # Dynamic
   printf "COOL DOWN DATA DYNAMIC TILL ${IDLETEMP}°C\n"
   for ((TIME=$TIME; $TEMP>$IDLETEMP; TIME=TIME+1)); do
    getdata
@@ -254,7 +259,7 @@ if [ "$COOLTIME" == "" ]
   endcsv
   gettesttime
   getcooltime
- else
+ else # SetTime
   printf "COOL DOWN DATA FOR: ${COOLTIME}s\n"
   for ((TIME=$TIME; TIME<$COOLTIME+$STRESSTIME+$IDLETIME; TIME=TIME+1)); do
    getdata
@@ -266,10 +271,8 @@ if [ "$COOLTIME" == "" ]
 fi
 
 # GENERATE GRAPH =======================================================================
-printf "GENERATING GRAPH\n"
 graphrrd
 
 #END MAIN ==============================================================================
-
 
 #EOF ===================================================================================
