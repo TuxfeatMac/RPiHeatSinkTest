@@ -3,8 +3,9 @@ VERSION='0.9.6'
 
 #DEFINE FUNKTIONS ======================================================================
 infotxt() {
- printf "RPi HeatSinkTest by Joachim Träuble V$VERSION\n\n"
+ printf "\nRPi HeatSinkTest by Joachim Träuble V$VERSION\n\n"
 }
+
 # GET USER INPUT  ======================================================================
 sethsname() {
  read -p "HeatSinkName ?                            : " HSNAME
@@ -35,20 +36,21 @@ setcooltime() {
  esac
 }
 onkill() {
- printf "\nEXIT...\n"
+ printf "\nQUITING HEATSINKTEST...\n"
  SYSBENCH=$(pgrep sysbench)
  if [ "$SYSBENCH" != "" ]
   then
-   printf "Killing Sysbench...\n"
+   printf "KILLING SYSBENCH...\n"
    sudo killall sysbench
  fi
  if [ -f $HSNAME.png ]
   then
-   printf "All Done Already...\n" 
+   printf "ALL DONE, BYE...\n"
   else
    endcsv
    gettesttime
    graphrrd
+   printf "FINALY DONE, BYE...\n"
  fi
 }
 
@@ -107,7 +109,15 @@ stopstress() {
 }
 startstress() {
  printf "START CPU STRESS TEST\n"
- sysbench --num-threads=4 --test=cpu --cpu-max-prime=1000000000 --max-time=1200 run > /dev/null 2>&1 &
+ sysbench --num-threads=4 --test=cpu --cpu-max-prime=1000000000 --max-time=3600 run > /dev/null 2>&1 &
+}
+
+# CONSOLE =====================================================================
+prntcli() {
+ printf "%s\t%s\t%s\t%s\n" $TIME $TEMP $CLOCK $THROT
+}
+prntinfo() {
+ printf "TIME\tTEMP\tCLOCK\tTHROT\n"
 }
 
 # CSV ===================================================================================
@@ -143,14 +153,6 @@ prntcsv() {
  printf "%s,%s,%s,%s\n" $TIME $TEMP $CLOCK $THROT | paste >> $HSNAME.csv
 }
 
-# CONSOLE =====================================================================
-prntcli() {
- printf "%s\t%s\t%s\t%s\n" $TIME $TEMP $CLOCK $THROT
-}
-prntinfo() {
- printf "TIME\tTEMP\tCLOCK\tTHROT\n"
-}
-
 # RRD ===================================================================================
 intrrd() {
  if [ "$CONFIRM" == "y" ]
@@ -168,7 +170,7 @@ intrrd() {
  RRA:MAX:0.8:1:3600
 }
 prntrrd() {
- #Variabelen anpassen fuer RRD
+ #convert vars for RRD
  THROT=$(($THROT*10))
  CLOCK=$(($CLOCK/100))
  #printf "%s\t%s\t%s\t%s\n" $TIME $TEMP $CLOCK $THROT
@@ -196,10 +198,17 @@ graphrrd() {
  GPRINT:clk:MIN:"Min=%.0lf00MHz" \
  GPRINT:clk:MAX:"Max=%.0lf00MHz   " \
  AREA:thro#e11110:"Throttled = $WASTHROT @ ${THROTTIME}s x${THROTCOUNT}"
+# HRULE:temp:MAX#03bd00
 # VRULE:end-${IDELTIME}s#e11110
 }
 
 # COMBINE  ==============================================================================
+setvars() {
+ sethsname
+ setidletime
+ setstresstime
+ setcooltime
+}
 getdata() {
  gettemp
  getclock
@@ -215,13 +224,9 @@ prntdata() {
 
 
 #MAIN ===================================================================================
-trap onkill EXIT
-clear
 infotxt
-sethsname
-setidletime
-setstresstime
-setcooltime
+trap onkill EXIT
+setvars
 intcsv
 intrrd
 
@@ -272,7 +277,7 @@ fi
 
 # GENERATE GRAPH =======================================================================
 graphrrd
-
 #END MAIN ==============================================================================
+
 
 #EOF ===================================================================================

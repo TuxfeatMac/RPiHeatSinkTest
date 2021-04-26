@@ -6,8 +6,8 @@ Measures the RPi SoC temperature and checks for CPU throttling every second.
 Features
 [X] set coustum idle|stress|cool timings
 [X] generate a CSV file containing: Step, Time, Temp, Freq
-[X] generate a RRD DataBase containing: Temp, Freq,
-[X] output a PNG Grpah with rrdtools
+[X] generate a RRD DataBase containing: Temp, Freq, Thro
+[X] output graph as PNG with rrdtools
 [ ]
 
 Dependencies
@@ -24,9 +24,9 @@ Run
 
 Add Features 
 [ ] more comments ?
+[ ] add time to csv
 [ ] false input protection ?
 [ ] add ThrotheCount to rrd / csv ?
-[ ] add time to csv
 [ ] -d as $1 as debugfunktion ?
 [ ] V2.0 with data every 15s ?
 [ ] dynamic compenstae for cmd execution time to improve accuracy ?
