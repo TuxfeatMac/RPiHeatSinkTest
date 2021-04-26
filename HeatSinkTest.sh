@@ -14,27 +14,53 @@ sethsname() {
    HSNAME="DEFAULT";;
  esac
 }
+
 setidletime() {
- read -p "Up Front Idle Time ?     in seconds  [60] : " IDLETIME
+ read -p "Up Front Idle Time ?     in seconds  [40] : " IDLETIME
  case $IDLETIME in
   "")
-   IDLETIME="60";;
+   IDLETIME="40";;
+  "*")
+   printf "\ninvalid input\n"
+   exit;;
+  [0-9])
+   printf "\nminimum 10\n"
+   exit;;
+  [0-9][0-9][0-9][0-9]);;
  esac
 }
+
 setstresstime() {
  read -p "Stress Test Time ?       in seconds [600] : " STRESSTIME
  case $STRESSTIME in
   "")
    STRESSTIME="600";;
+  "*")
+   printf "\ninvalid input\n"
+   exit;;
+  [0-9])
+   printf "\nminimum 10\n"
+   exit;;
+  [0-9][0-9][0-9][0-9]);;
  esac
 }
+
 setcooltime() {
  read -p "Cooldown Time ? in seconds dynamic=d [60] : " COOLTIME
  case $COOLTIME in
   "")
    COOLTIME="60";;
+  "*")
+   printf "\ninvalid input\n"
+   exit;;
+  [0-9])
+   printf "\nminimum 10\n"
+   exit;;
+  [0-9][0-9][0-9][0-9]);;
  esac
 }
+
+# EXIT CLEANUP ROUTINE  ===============================================================
 onkill() {
  printf "\nQUITING HEATSINKTEST...\n"
  SYSBENCH=$(pgrep sysbench)
@@ -91,7 +117,8 @@ case $THROT in
 	THROT=0
 	WASTHROT="YES"
 	if [ "$THROTTIME" == "" ]; then
-	 THROTTIME=$(($TIME-$IDLETIME))
+	 THROTTIME=$(($TIME-$IDLETIME)) ##
+         THROTHVRULE=$(date +%s)
 	fi
 	printf "!%s %s reboot required!\n" $WASTHROT $THROTTIME;;
  0x20002)
@@ -138,6 +165,8 @@ intcsv() {
  fi
  printf "CREATE NEW CSV\n"
  TIMESTAMP=$(date)
+# STARTTIME=$(date +%m-%d-%Y%H:%M:%S)
+ STARTTIME=$(date +%s)
  printf "$TIMESTAMP" | paste >> $HSNAME.csv
  printf "sec,tmp,clk,thr\n" | paste >> $HSNAME.csv
 }
@@ -145,6 +174,7 @@ endcsv() {
  if [ -f "$HSNAME.csv" ]
   then
    TIMESTAMP=$(date)
+   ENDTIME=$(date +%s)
    printf "WRITE END TIMESTAMP CSV\n"
    printf "$TIMESTAMP" | paste >> $HSNAME.csv
  fi
@@ -177,10 +207,14 @@ prntrrd() {
  rrdtool update $HSNAME.rrd N:$TEMP:$CLOCK:$THROT
 }
 graphrrd() {
+ if [ "$THROTHVRULE" == "" ]
+  then
+   THROTHVRULE=0
+ fi
  printf "GENERATING GRAPH\n"
  rrdtool graph $HSNAME.png \
- --end now-1s\
- --start end-${TESTTIME}s+1s \
+ --end $ENDTIME-1s \
+ --start $STARTTIME+1s \
  --full-size-mode \
  --slope-mode \
  --width 1000 \
@@ -197,9 +231,9 @@ graphrrd() {
  AREA:clk#0223ca:"Clock in MHz x100" \
  GPRINT:clk:MIN:"Min=%.0lf00MHz" \
  GPRINT:clk:MAX:"Max=%.0lf00MHz   " \
- AREA:thro#e11110:"Throttled = $WASTHROT @ ${THROTTIME}s x${THROTCOUNT}"
-# HRULE:temp:MAX#03bd00
-# VRULE:end-${IDELTIME}s#e11110
+ AREA:thro#e11110:"Throttled = $WASTHROT @ ${THROTTIME}s x${THROTCOUNT}" \
+ HRULE:80#e11110 \
+ VRULE:$THROTHVRULE#e11110
 }
 
 # COMBINE  ==============================================================================
@@ -236,7 +270,7 @@ prntinfo
 for ((TIME=0; TIME<$IDLETIME; TIME=TIME+1)); do
  getdata
  prntdata
- sleep 0.9 # compensate...
+ sleep 0.89 # compensate...
 done
 getidletemp
 
@@ -247,7 +281,7 @@ startstress
 for ((TIME=$TIME; TIME<$STRESSTIME+$IDLETIME; TIME=TIME+1)); do
  getdata
  prntdata
- sleep 0.9 # compensate...
+ sleep 0.88 # compensate...
 done
 stopstress
 
@@ -259,7 +293,7 @@ if [ "$COOLTIME" == "d" ]
   for ((TIME=$TIME; $TEMP>$IDLETEMP; TIME=TIME+1)); do
    getdata
    prntdata
-   sleep 0.9 # compensate...
+   sleep 0.89 # compensate...
   done
   endcsv
   gettesttime
@@ -269,7 +303,7 @@ if [ "$COOLTIME" == "d" ]
   for ((TIME=$TIME; TIME<$COOLTIME+$STRESSTIME+$IDLETIME; TIME=TIME+1)); do
    getdata
    prntdata
-   sleep 0.9 # compensate...
+   sleep 0.89 # compensate...
   done
   endcsv
   gettesttime
