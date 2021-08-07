@@ -30,4 +30,5 @@ Add Features
 [ ] -d as $1 as debugfunktion ?
 [ ] V2.0 with data every 15s ?
 [ ] dynamic compenstae for cmd execution time to improve accuracy ?
-[ ] 
+[ ] ad an one wire sensor for environment temp ?
+[ ] detect cpu core count automaticali for copmatibility
